@@ -1,4 +1,4 @@
-// Defaults and Configuration Manager (Chrome Extension Version using chrome.storage.local)
+// defaults.js for Chrome Extension Side Panel (uses chrome.storage.local asynchronously)
 
 const DEFAULT_CONFIG = {
   sources: [
@@ -63,25 +63,29 @@ const DEFAULT_CONFIG = {
 const STORAGE_KEY = 'rtb_board_config_v1';
 
 async function loadConfig() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get([STORAGE_KEY], (res) => {
-      let data = res[STORAGE_KEY];
-      if (!data) {
-        data = DEFAULT_CONFIG;
-        chrome.storage.local.set({ [STORAGE_KEY]: DEFAULT_CONFIG });
-      }
-      // Backfill new keys
-      if (data.payoutVisible === undefined) data.payoutVisible = false;
-      if (data.payoutRangeSize === undefined) data.payoutRangeSize = 40;
-      resolve(data);
-    });
-  });
+  try {
+    const res = await chrome.storage.local.get([STORAGE_KEY]);
+    let data = res[STORAGE_KEY];
+    if (!data) {
+      data = structuredClone(DEFAULT_CONFIG);
+      await chrome.storage.local.set({ [STORAGE_KEY]: data });
+    }
+    // Deep backfill and ensure keys are set
+    if (data.payoutVisible === undefined) data.payoutVisible = false;
+    if (data.payoutRangeSize === undefined) data.payoutRangeSize = 40;
+    return data;
+  } catch (e) {
+    console.error("Failed to load config from chrome storage:", e);
+    return structuredClone(DEFAULT_CONFIG);
+  }
 }
 
-async function saveConfig(config) {
-  return new Promise((resolve) => {
-    chrome.storage.local.set({ [STORAGE_KEY]: config }, resolve);
-  });
+async function saveConfig(configObj) {
+  try {
+    await chrome.storage.local.set({ [STORAGE_KEY]: configObj });
+  } catch (e) {
+    console.error("Failed to save config to chrome storage:", e);
+  }
 }
 
 function uid(prefix) {

@@ -222,7 +222,14 @@
       ? eligibleRoutes.map(rt => {
           const num        = escapeHtml(extractPhoneNumber(rt.number || ''));
           const payoutDisp = escapeHtml(formatPayout(rt.payout, payoutVisible, rangeSize));
-          const bufferSecs = rt.duration != null ? `${rt.duration}s` : '—';
+          const bufferVal = rt.duration != null 
+            ? rt.duration 
+            : (rt.allocation_time_seconds != null 
+                ? rt.allocation_time_seconds 
+                : (json?.allocation_time_seconds != null 
+                    ? json.allocation_time_seconds 
+                    : null));
+          const bufferSecs = bufferVal != null ? `${bufferVal}s` : '—';
           const bidLabel   = payoutVisible ? 'Bid Payout' : 'Bid Tier';
 
           return `
