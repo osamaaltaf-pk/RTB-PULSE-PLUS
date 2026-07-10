@@ -683,12 +683,53 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
 
+/* ── Toggle switch (payout reveal) ──────────────────────── */
+
+.toggle-track {
+  width: 42px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 20px;
+  position: relative;
+  flex: none;
+  cursor: pointer;
+  transition: background .2s;
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* ── 2-column grid for results (one cell per source) ─────── */
+
+#results {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* Each source-group fills its grid cell, no scroll */
+.source-group {
+  margin-bottom: 0;        /* grid gap handles spacing */
+  min-width: 0;            /* prevent overflow */
+}
+
 @media (max-width: 640px) {
   .query-bar { flex-direction: column; max-width: 100%; }
   .query-run-btn { width: 100%; padding: 13px; justify-content: center; }
   .summary-bar { grid-template-columns: repeat(2, 1fr); }
   .card-header { flex-wrap: wrap; }
+  #results { grid-template-columns: 1fr; }  /* stack on mobile */
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   .pulse-dot, .card-dot.spin, .skeleton-line { animation: none; }

@@ -61,7 +61,10 @@ const DEFAULT_CONFIG = {
       url: 'https://rtb.moja.cloud/inbound_rtb/inbound_rtb_1780612283933_0705cdd8?CALLER_ID={{CALLER_ID}}',
       fields: ['caller_id']
     }
-  ]
+  ],
+  // Payout display controls (admin-only)
+  payoutVisible: false,   // false = show tier (1x/2x/3x), true = show actual $
+  payoutRangeSize: 40     // each tier covers this many dollars: 1-40=1x, 41-80=2x …
 };
 
 const STORAGE_KEY = 'rtb_board_config_v1';
@@ -75,6 +78,9 @@ function loadConfig() {
     }
     const parsed = JSON.parse(raw);
     if (!parsed.sources || !parsed.routes) throw new Error('malformed config');
+    // Backfill new keys so existing saved configs still work
+    if (parsed.payoutVisible  === undefined) parsed.payoutVisible  = false;
+    if (parsed.payoutRangeSize === undefined) parsed.payoutRangeSize = 40;
     return parsed;
   } catch (e) {
     console.error('Config load failed, resetting to defaults.', e);

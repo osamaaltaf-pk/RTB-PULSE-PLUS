@@ -18,6 +18,7 @@
   function unlock() {
     gate.style.display = 'none';
     adminContent.style.display = '';
+    initPayoutSettings();
     renderSources();
     renderTable();
   }
@@ -55,6 +56,56 @@
     sessionStorage.removeItem(SESSION_KEY);
     location.reload();
   });
+
+  // ── Payout Settings ───────────────────────────────────────
+
+  function initPayoutSettings() {
+    const chk        = document.getElementById('payout-visible-chk');
+    const track      = document.getElementById('payout-toggle-track');
+    const thumb      = document.getElementById('payout-toggle-thumb');
+    const badge      = document.getElementById('payout-status-badge');
+    const rangeInput = document.getElementById('payout-range-size');
+
+    function applyToggleUI(visible) {
+      if (visible) {
+        track.style.background = 'var(--teal)';
+        thumb.style.transform  = 'translateX(20px)';
+        badge.style.background = 'rgba(95,208,138,0.12)';
+        badge.style.color      = 'var(--green)';
+        badge.textContent      = 'REVEALED (agents see $ amount)';
+      } else {
+        track.style.background = 'var(--border)';
+        thumb.style.transform  = 'translateX(0)';
+        badge.style.background = 'rgba(229,88,107,0.12)';
+        badge.style.color      = 'var(--red)';
+        badge.textContent      = 'HIDDEN (agents see tiers)';
+      }
+    }
+
+    // Load saved state
+    chk.checked = config.payoutVisible === true;
+    applyToggleUI(chk.checked);
+    rangeInput.value = config.payoutRangeSize || 40;
+
+    // Toggle click
+    track.addEventListener('click', () => {
+      chk.checked = !chk.checked;
+      config.payoutVisible = chk.checked;
+      saveConfig(config);
+      applyToggleUI(chk.checked);
+      toast(chk.checked ? '💰 Payout revealed to agents' : '🔒 Payout hidden — agents see tiers');
+    });
+
+    // Range size change
+    rangeInput.addEventListener('change', () => {
+      const val = parseInt(rangeInput.value);
+      if (val > 0) {
+        config.payoutRangeSize = val;
+        saveConfig(config);
+        toast(`Tier size set: $1–${val} = 1x, $${val+1}–${val*2} = 2x …`);
+      }
+    });
+  }
 
   // ── Table render ─────────────────────────────────────────
 
