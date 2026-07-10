@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "RTB Route Board — Webster Solutions LLC",
+  "short_name": "RTB Board",
+  "version": "1.0.0",
+  "description": "🔥 Fire RTB pings against every configured buyer route — direct, no proxy",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "clipboardRead",
+    "clipboardWrite",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/panel.html"
+  },
+  "action": {
+    "default_title": "RTB Route Board — Webster Solutions LLC"
+  }
+}

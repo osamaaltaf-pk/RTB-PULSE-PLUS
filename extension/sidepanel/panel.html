@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Webster Solutions LLC — RTB Route Board</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 12c0-3 2-5 5-5M21 12c0-3-2-5-5-5M6 12c0 3.5 2.5 6 6 6s6-2.5 6-6" stroke="#06201D" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.6" fill="#06201D"/></svg>
+      </div>
+      <div>
+        <h1>Webster Solutions LLC</h1>
+        <div class="sub">RTB Route Board — run caller ID against every buyer route</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <a href="/admin.html" class="btn btn-ghost">Manage routes</a>
+    </div>
+  </div>
+
+  <form id="query-form" class="panel query-bar">
+    <!-- Left: stacked inputs -->
+    <div class="query-inputs">
+      <div class="field">
+        <label for="caller-id">Caller ID</label>
+        <div class="input-wrap">
+          <input type="text" id="caller-id" placeholder="10-digit number" autocomplete="off" maxlength="10" inputmode="numeric" />
+          <button type="button" class="paste-btn" data-target="caller-id" data-type="phone" title="Paste from clipboard">📋</button>
+        </div>
+        <div class="input-hint">+1 / country code stripped automatically</div>
+      </div>
+      <div class="field zip" id="zip-field" style="display:none;">
+        <label for="zip">Zip code</label>
+        <div class="input-wrap">
+          <input type="text" id="zip" placeholder="90210" autocomplete="off" maxlength="10" inputmode="numeric" />
+          <button type="button" class="paste-btn" data-target="zip" data-type="zip" title="Paste from clipboard">📋</button>
+        </div>
+      </div>
+    </div>
+    <!-- Right: run button -->
+    <button type="submit" class="btn btn-primary query-run-btn" id="run-btn">
+      <span class="pulse-dot" style="display:none" id="run-dot"></span>
+      🔥 Fire
+    </button>
+  </form>
+
+  <!-- Summary bar (shown after first run) -->
+  <div id="summary-bar" class="summary-bar" style="display:none;">
+    <div class="summary-item">
+      <div class="summary-val" id="sum-fired">0</div>
+      <div class="summary-lbl">Fired</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-val green" id="sum-routes">0</div>
+      <div class="summary-lbl">Routes</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-val" id="sum-payout">$0</div>
+      <div class="summary-lbl">Max Pay</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-val" id="sum-time">0s</div>
+      <div class="summary-lbl">Time</div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/defaults.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>

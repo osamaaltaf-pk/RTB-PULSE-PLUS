@@ -1,6 +1,5 @@
 (() => {
-  let config = loadConfig();
-
+  let config;
   const form        = document.getElementById('query-form');
   const callerInput = document.getElementById('caller-id');
   const zipInput    = document.getElementById('zip');
@@ -10,14 +9,21 @@
   const runDot      = document.getElementById('run-dot');
   const summaryBar  = document.getElementById('summary-bar');
 
+  // Track max payouts for live sorting
+  const currentResults = {};
+
+  async function init() {
+    config = await loadConfig();
+    refreshZipVisibility();
+    renderBoard();
+  }
+
   function refreshZipVisibility() {
     const needs = config.routes.some(r => r.fields.includes('zip'));
     zipField.style.display = needs ? '' : 'none';
   }
-  refreshZipVisibility();
 
-  // ── Phone number cleaning (mirrors RTB Pulse) ─────────────
-  // Strip non-digits, remove leading 1 from 11-digit numbers, cap at 10 digits.
+  // ── Phone number cleaning ─────────────────────────────────
   function cleanPhone(val) {
     let d = String(val).replace(/[^\d]/g, '');
     if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
@@ -65,7 +71,6 @@
   );
 
   // ── Route number extraction ───────────────────────────────
-  // Strip +1 or leading 1 (11-digit) from API response number field.
   function extractPhoneNumber(raw) {
     const s = String(raw || '');
     if (s.startsWith('+1')) return s.slice(2);
@@ -74,13 +79,11 @@
   }
 
   // ── Payout tier calculation ───────────────────────────────
-  // 1-40 = 1x, 41-80 = 2x, 81-120 = 3x … based on admin-set rangeSize.
   function getTierLabel(payout, rangeSize) {
     const multiplier = Math.ceil(Math.max(0.01, payout) / rangeSize);
     return `${multiplier}x`;
   }
 
-  // Returns what to display/copy based on admin payout toggle.
   function formatPayout(payout, payoutVisible, rangeSize) {
     return payoutVisible
       ? `$${Number(payout || 0).toFixed(2)}`
@@ -128,9 +131,6 @@
       btn.addEventListener('click', e => { e.stopPropagation(); copyText(btn.dataset.url); showToast('🔗 URL copied'); })
     );
   }
-
-  // Track max payouts for live sorting
-  const currentResults = {};
 
   // ── Sort cards in DOM by payout descending ────────────────
   function sortCardsInDOM(cardEl) {
@@ -204,14 +204,14 @@
 
     card.className = `result-card ${hasRoutes ? 'has-routes' : 'no-routes'}`;
 
-    // "Copy Both" value — one line per eligible route
+    // "Copy Both" value
     const copyBothVal = eligibleRoutes.map(rt => {
       const num    = extractPhoneNumber(rt.number || '');
       const bidStr = formatPayout(rt.payout, payoutVisible, rangeSize);
       return `${num} - ${bidStr}`;
     }).join('\n');
 
-    // Footer meta pills
+    // Footer pills
     const pills = [];
     if (totalRts !== undefined) pills.push(`${totalRts} route${totalRts !== 1 ? 's' : ''}`);
     if (reqId) pills.push(`ID: ${reqId}`);
@@ -227,7 +227,6 @@
 
           return `
             <div class="route-result-row">
-              <!-- Route Number -->
               <div style="display:flex; flex-direction:column; gap:3px; width:100%;">
                 <span class="route-box-label">Route Number</span>
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -236,7 +235,6 @@
                 </div>
               </div>
               <div style="height:1px; background:var(--border-soft); width:100%;"></div>
-              <!-- Buffer Time  +  Bid -->
               <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
                 <div style="display:flex; flex-direction:column; gap:3px;">
                   <span class="route-box-label">Buffer Time</span>
@@ -273,7 +271,7 @@
     sortCardsInDOM(card);
   }
 
-  // ── Board render (2-column grid, one cell per source) ─────
+  // ── Board render ──────────────────────────────────────────
   function renderBoard() {
     resultsEl.innerHTML = '';
     summaryBar.style.display = 'none';
@@ -305,7 +303,7 @@
       resultsEl.appendChild(group);
     }
 
-    // Orphan routes (source deleted)
+    // Orphan routes
     const orphan = config.routes.filter(r => !config.sources.some(s => s.id === r.sourceId));
     if (orphan.length) {
       const group = document.createElement('div');
@@ -343,15 +341,14 @@
 
   // ── Run all routes in parallel ────────────────────────────
   async function runCheck(callerId, zip) {
-    // Re-read config each run so admin payout toggle takes effect immediately
-    config = loadConfig();
+    config = await loadConfig();
     refreshZipVisibility();
-
-    const payoutVisible = config.payoutVisible === true;
-    const rangeSize     = config.payoutRangeSize || 40;
 
     // Reset results tracking
     for (const key in currentResults) delete currentResults[key];
+
+    const payoutVisible = config.payoutVisible === true;
+    const rangeSize     = config.payoutRangeSize || 40;
 
     renderBoard();
     runBtn.disabled = true;
@@ -367,10 +364,9 @@
 
       const targetUrl = fillTemplate(route.url, callerId, zip);
       try {
-        const res  = await fetch(`/api/proxy?url=${encodeURIComponent(targetUrl)}`, { signal: AbortSignal.timeout(20000) });
+        // Direct fetch (no proxy since we're in extension background/sidepanel context)
+        const res  = await fetch(targetUrl, { signal: AbortSignal.timeout(20000) });
         const body = await res.json();
-        if (!res.ok || body.__proxyError)
-          return updateRow(route, { kind: 'error', message: body.__proxyError || `HTTP ${res.status}` }, payoutVisible, rangeSize);
         okData.push(body);
         return updateRow(route, { kind: 'ok', data: body }, payoutVisible, rangeSize);
       } catch (e) {
@@ -396,5 +392,5 @@
     runCheck(callerId, zip);
   });
 
-  renderBoard();
+  init();
 })();
