@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Manage routes — RTB Route Board</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Password gate -->
+  <div class="gate" id="gate">
+    <h2>Manage routes</h2>
+    <p>Enter the admin password to add or edit buyer routes.</p>
+    <form id="gate-form">
+      <div class="form-row">
+        <label for="gate-password">Password</label>
+        <input type="password" id="gate-password" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Unlock</button>
+      <div class="err" id="gate-err">Incorrect password.</div>
+    </form>
+  </div>
+
+  <!-- Admin content -->
+  <div id="admin-content" style="display:none;">
+    <div class="top">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 12c0-3 2-5 5-5M21 12c0-3-2-5-5-5M6 12c0 3.5 2.5 6 6 6s6-2.5 6-6" stroke="#06201D" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="1.6" fill="#06201D"/></svg>
+        </div>
+        <div>
+          <h1>Manage routes</h1>
+          <div class="sub">Stored in this browser only — export a backup after changes</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a href="/index.html" class="btn btn-ghost">← Board</a>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Lock</button>
+      </div>
+    </div>
+
+    <div class="admin-head">
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" id="add-source-btn">+ Add source</button>
+        <button class="btn btn-primary" id="add-route-btn">+ Add route</button>
+      </div>
+    </div>
+
+    <div class="panel panel-pad">
+      <table class="route-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Route name</th>
+            <th>URL</th>
+            <th>Requires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="route-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="backup-row">
+      <button class="btn btn-ghost btn-sm" id="export-btn">Export backup (.json)</button>
+      <button class="btn btn-ghost btn-sm" id="import-btn">Import backup</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none;" />
+    </div>
+  </div>
+
+</div>
+
+<!-- Route modal -->
+<div class="modal-backdrop" id="route-modal-backdrop">
+  <div class="modal">
+    <h3 id="route-modal-title">Add route</h3>
+    <form id="route-form">
+      <input type="hidden" id="route-id" />
+      <div class="form-row">
+        <label for="route-source">Source (buyer / publisher account)</label>
+        <select id="route-source"></select>
+      </div>
+      <div class="form-row">
+        <label for="route-name">Route name</label>
+        <input type="text" id="route-name" placeholder="e.g. Bathrooms" />
+      </div>
+      <div class="form-row">
+        <label for="route-url">RTB URL</label>
+        <textarea id="route-url" placeholder="https://rtb.moja.cloud/inbound_rtb/...?CALLER_ID={{CALLER_ID}}&ZIP_CODE={{ZIP}}"></textarea>
+        <div class="helper">Use <code>{{CALLER_ID}}</code> and, if needed, <code>{{ZIP}}</code> exactly where those values go.</div>
+      </div>
+      <div class="form-row">
+        <label>Required input fields</label>
+        <div class="checks">
+          <label class="check-item"><input type="checkbox" id="route-field-caller" checked /> Caller ID</label>
+          <label class="check-item"><input type="checkbox" id="route-field-zip" /> Zip code</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="route-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="route-save-btn">Save route</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Source modal -->
+<div class="modal-backdrop" id="source-modal-backdrop">
+  <div class="modal">
+    <h3>Add source</h3>
+    <form id="source-form">
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label for="source-name">Source name</label>
+          <input type="text" id="source-name" placeholder="e.g. Evercontractor" />
+        </div>
+        <div class="form-row" style="max-width:100px;">
+          <label for="source-color">Color</label>
+          <input type="color" id="source-color" value="#3FB8AF" style="height:44px; padding:4px; cursor:pointer;" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="source-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save source</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/defaults.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

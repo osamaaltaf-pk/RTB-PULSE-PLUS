@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/proxy.js": { "maxDuration": 15 },
+    "api/admin-auth.js": { "maxDuration": 10 }
+  }
+}
