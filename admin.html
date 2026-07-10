@@ -66,13 +66,13 @@
       </div>
       <div style="display:flex; align-items:flex-start; gap:32px; flex-wrap:wrap;">
         <!-- Reveal toggle -->
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;">
+        <div style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;" id="payout-toggle-container">
           <div class="toggle-track" id="payout-toggle-track">
             <div class="toggle-thumb" id="payout-toggle-thumb"></div>
           </div>
           <span style="font-size:13px; font-weight:600;" id="payout-toggle-label">Reveal actual payout to agents</span>
           <input type="checkbox" id="payout-visible-chk" style="display:none;" />
-        </label>
+        </div>
         <!-- Range size -->
         <div style="display:flex; flex-direction:column; gap:6px;">
           <label for="payout-range-size" style="margin:0; text-transform:uppercase; font-size:10px; letter-spacing:.05em;">Tier range size ($)</label>

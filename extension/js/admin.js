@@ -56,6 +56,7 @@
 
   function initPayoutSettings() {
     const chk        = document.getElementById('payout-visible-chk');
+    const container  = document.getElementById('payout-toggle-container');
     const track      = document.getElementById('payout-toggle-track');
     const thumb      = document.getElementById('payout-toggle-thumb');
     const badge      = document.getElementById('payout-status-badge');
@@ -82,8 +83,8 @@
     applyToggleUI(chk.checked);
     rangeInput.value = config.payoutRangeSize || 40;
 
-    // Toggle click
-    track.addEventListener('click', async () => {
+    // Toggle click on the container div (avoids double toggle bugs)
+    container.addEventListener('click', async () => {
       chk.checked = !chk.checked;
       config.payoutVisible = chk.checked;
       await saveConfig(config);
