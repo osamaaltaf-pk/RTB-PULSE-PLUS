@@ -116,8 +116,10 @@ async function initTheme() {
   }
   
   if (theme === 'dark') {
+    document.documentElement.classList.add('dark-theme');
     document.body.classList.add('dark-theme');
   } else {
+    document.documentElement.classList.remove('dark-theme');
     document.body.classList.remove('dark-theme');
   }
   
@@ -133,7 +135,8 @@ async function initTheme() {
     if (!btn) return;
     btn.textContent = theme === 'dark' ? '🌙' : '☀️';
     btn.addEventListener('click', async () => {
-      const isDark = document.body.classList.toggle('dark-theme');
+      const isDark = document.documentElement.classList.toggle('dark-theme');
+      document.body.classList.toggle('dark-theme', isDark);
       const newTheme = isDark ? 'dark' : 'light';
       btn.textContent = isDark ? '🌙' : '☀️';
       try {

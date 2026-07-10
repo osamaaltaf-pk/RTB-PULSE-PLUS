@@ -25,7 +25,7 @@
 }
 
 /* ── Dark Theme Override ─────────────────────────────────── */
-body.dark-theme {
+:root.dark-theme, html.dark-theme {
   --bg: #0B0D10;
   --panel: #14181D;
   --panel-2: #1B2027;
