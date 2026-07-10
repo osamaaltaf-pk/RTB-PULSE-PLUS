@@ -156,7 +156,6 @@
 
     // Skipped
     if (outcome.kind === 'skipped') {
-      currentResults[route.id] = -100;
       card.className = 'result-card no-routes';
       card.innerHTML = `
         <div class="card-header">
@@ -171,7 +170,6 @@
 
     // Error
     if (outcome.kind === 'error') {
-      currentResults[route.id] = -200;
       card.className = 'result-card errored';
       card.innerHTML = `
         <div class="card-header">
@@ -189,10 +187,6 @@
     // Success — parse response
     const json = outcome.data;
     const eligibleRoutes = Array.isArray(json?.eligible_routes) ? json.eligible_routes : [];
-
-    // Update global results map for sorting cards in group
-    const maxPayout = eligibleRoutes.length > 0 ? Math.max(...eligibleRoutes.map(rt => rt.payout || 0)) : 0;
-    currentResults[route.id] = maxPayout;
 
     const hasRoutes = eligibleRoutes.length > 0;
     const reqId    = json?.request_id ? json.request_id.substring(0, 8) + '…' : '';
