@@ -371,9 +371,11 @@
 
       const targetUrl = fillTemplate(route.url, callerId, zip);
       try {
-        // Direct fetch (no proxy since we're in extension background/sidepanel context)
-        const res  = await fetch(targetUrl, { signal: AbortSignal.timeout(20000) });
-        const body = await res.json();
+        const response = await chrome.runtime.sendMessage({ type: 'FETCH_DIRECT', url: targetUrl });
+        if (!response || !response.success) {
+          throw new Error(response?.error || 'Direct fetch failed');
+        }
+        const body = response.data;
         okData.push(body);
         return updateRow(route, { kind: 'ok', data: body }, payoutVisible, rangeSize);
       } catch (e) {
