@@ -96,14 +96,22 @@
       toast(chk.checked ? '💰 Payout revealed to agents' : '🔒 Payout hidden — agents see tiers');
     });
 
-    // Range size change
-    rangeInput.addEventListener('change', () => {
+    // Range size — save on Update button click
+    const saveBtn = document.getElementById('payout-range-save-btn');
+    const hint    = document.getElementById('payout-range-hint');
+
+    function updateHint(size) {
+      hint.textContent = `$1–${size} = 1x  ·  $${size+1}–${size*2} = 2x  ·  $${size*2+1}–${size*3} = 3x …`;
+    }
+    updateHint(config.payoutRangeSize || 40);
+
+    saveBtn.addEventListener('click', () => {
       const val = parseInt(rangeInput.value);
-      if (val > 0) {
-        config.payoutRangeSize = val;
-        saveConfig(config);
-        toast(`Tier size set: $1–${val} = 1x, $${val+1}–${val*2} = 2x …`);
-      }
+      if (!val || val < 1) { toast('⚠️ Enter a valid range size'); return; }
+      config.payoutRangeSize = val;
+      saveConfig(config);
+      updateHint(val);
+      toast(`✅ Tier size updated: $1–${val} = 1x, $${val+1}–${val*2} = 2x …`);
     });
   }
 
