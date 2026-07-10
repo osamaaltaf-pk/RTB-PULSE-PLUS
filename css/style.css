@@ -249,11 +249,13 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 20px 24px;
+  margin: 0 auto 20px;
+  max-width: 680px;
 }
-.query-bar .field { flex: 1; }
-.query-bar .field.zip { max-width: 160px; }
+.query-bar .field { flex: 1; min-width: 0; }
+.query-bar .field.zip { flex: 1; max-width: none; }
+.query-bar .btn-primary { flex: none; white-space: nowrap; align-self: flex-end; padding: 11px 22px; }
 
 /* ── Summary bar ─────────────────────────────────────────── */
 
@@ -261,7 +263,8 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-bottom: 28px;
+  max-width: 680px;
+  margin: 0 auto 28px;
 }
 
 .summary-item {
@@ -659,7 +662,7 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
 
 @media (max-width: 640px) {
   .query-bar { flex-direction: column; align-items: stretch; }
-  .query-bar .field.zip { max-width: none; }
+  .query-bar .btn-primary { width: 100%; justify-content: center; }
   .summary-bar { grid-template-columns: repeat(2, 1fr); }
   .card-header { flex-wrap: wrap; }
 }
