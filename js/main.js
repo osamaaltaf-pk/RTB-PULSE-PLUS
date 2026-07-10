@@ -129,23 +129,6 @@
     );
   }
 
-  // Track max payouts for live sorting
-  const currentResults = {};
-
-  // ── Sort cards in DOM by payout descending ────────────────
-  function sortCardsInDOM(cardEl) {
-    const parentList = cardEl.parentElement;
-    if (!parentList) return;
-    const cards = Array.from(parentList.children);
-    cards.sort((a, b) => {
-      const idA = a.id.replace('row-', '');
-      const idB = b.id.replace('row-', '');
-      const payA = currentResults[idA] !== undefined ? currentResults[idA] : -500;
-      const payB = currentResults[idB] !== undefined ? currentResults[idB] : -500;
-      return payB - payA; // descending
-    });
-    cards.forEach(c => parentList.appendChild(c));
-  }
 
   // ── Update a card with the final result ───────────────────
   function updateRow(route, outcome, payoutVisible, rangeSize) {
@@ -154,7 +137,6 @@
 
     // Skipped
     if (outcome.kind === 'skipped') {
-      currentResults[route.id] = -100;
       card.className = 'result-card no-routes';
       card.innerHTML = `
         <div class="card-header">
@@ -164,13 +146,11 @@
         </div>
         <div class="card-body"><div class="no-routes-msg">${escapeHtml(outcome.reason)}</div></div>
       `;
-      sortCardsInDOM(card);
       return;
     }
 
     // Error
     if (outcome.kind === 'error') {
-      currentResults[route.id] = -200;
       card.className = 'result-card errored';
       card.innerHTML = `
         <div class="card-header">
@@ -182,20 +162,12 @@
           <div class="no-routes-msg" style="color:var(--red)">⚠️ ${escapeHtml(outcome.message)}</div>
         </div>
       `;
-      sortCardsInDOM(card);
       return;
     }
 
     // Success — parse response
     const json = outcome.data;
     const eligibleRoutes = Array.isArray(json?.eligible_routes) ? json.eligible_routes : [];
-    
-    // Sort eligible routes within the card descending by payout
-    eligibleRoutes.sort((a, b) => (b.payout || 0) - (a.payout || 0));
-
-    // Update global results map for sorting cards in group
-    const maxPayout = eligibleRoutes.length > 0 ? Math.max(...eligibleRoutes.map(rt => rt.payout || 0)) : 0;
-    currentResults[route.id] = maxPayout;
 
     const hasRoutes = eligibleRoutes.length > 0;
     const reqId    = json?.request_id ? json.request_id.substring(0, 8) + '…' : '';
@@ -277,7 +249,6 @@
     `;
 
     wireCopyButtons(card);
-    sortCardsInDOM(card);
   }
 
   // ── Board render (2-column grid, one cell per source) ─────
@@ -356,9 +327,6 @@
 
     const payoutVisible = config.payoutVisible === true;
     const rangeSize     = config.payoutRangeSize || 40;
-
-    // Reset results tracking
-    for (const key in currentResults) delete currentResults[key];
 
     renderBoard();
     runBtn.disabled = true;

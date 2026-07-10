@@ -9,8 +9,6 @@
   const runDot      = document.getElementById('run-dot');
   const summaryBar  = document.getElementById('summary-bar');
 
-  // Track max payouts for live sorting
-  const currentResults = {};
 
   async function init() {
     config = await loadConfig();
@@ -132,20 +130,6 @@
     );
   }
 
-  // ── Sort cards in DOM by payout descending ────────────────
-  function sortCardsInDOM(cardEl) {
-    const parentList = cardEl.parentElement;
-    if (!parentList) return;
-    const cards = Array.from(parentList.children);
-    cards.sort((a, b) => {
-      const idA = a.id.replace('row-', '');
-      const idB = b.id.replace('row-', '');
-      const payA = currentResults[idA] !== undefined ? currentResults[idA] : -500;
-      const payB = currentResults[idB] !== undefined ? currentResults[idB] : -500;
-      return payB - payA; // descending
-    });
-    cards.forEach(c => parentList.appendChild(c));
-  }
 
   // ── Update a card with the final result ───────────────────
   function updateRow(route, outcome, payoutVisible, rangeSize) {
@@ -164,7 +148,6 @@
         </div>
         <div class="card-body"><div class="no-routes-msg">${escapeHtml(outcome.reason)}</div></div>
       `;
-      sortCardsInDOM(card);
       return;
     }
 
@@ -182,16 +165,12 @@
           <div class="no-routes-msg" style="color:var(--red)">⚠️ ${escapeHtml(outcome.message)}</div>
         </div>
       `;
-      sortCardsInDOM(card);
       return;
     }
 
     // Success — parse response
     const json = outcome.data;
     const eligibleRoutes = Array.isArray(json?.eligible_routes) ? json.eligible_routes : [];
-    
-    // Sort eligible routes within the card descending by payout
-    eligibleRoutes.sort((a, b) => (b.payout || 0) - (a.payout || 0));
 
     // Update global results map for sorting cards in group
     const maxPayout = eligibleRoutes.length > 0 ? Math.max(...eligibleRoutes.map(rt => rt.payout || 0)) : 0;
@@ -275,7 +254,6 @@
     `;
 
     wireCopyButtons(card);
-    sortCardsInDOM(card);
   }
 
   // ── Board render ──────────────────────────────────────────
@@ -351,8 +329,6 @@
     config = await loadConfig();
     refreshZipVisibility();
 
-    // Reset results tracking
-    for (const key in currentResults) delete currentResults[key];
 
     const payoutVisible = config.payoutVisible === true;
     const rangeSize     = config.payoutRangeSize || 40;
