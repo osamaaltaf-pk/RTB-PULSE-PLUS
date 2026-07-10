@@ -25,22 +25,26 @@
   </div>
 
   <form id="query-form" class="panel query-bar">
-    <div class="field">
-      <label for="caller-id">Caller ID</label>
-      <div class="input-wrap">
-        <input type="text" id="caller-id" placeholder="10-digit number" autocomplete="off" maxlength="10" inputmode="numeric" />
-        <button type="button" class="paste-btn" data-target="caller-id" data-type="phone" title="Paste from clipboard">📋</button>
+    <!-- Left: stacked inputs -->
+    <div class="query-inputs">
+      <div class="field">
+        <label for="caller-id">Caller ID</label>
+        <div class="input-wrap">
+          <input type="text" id="caller-id" placeholder="10-digit number" autocomplete="off" maxlength="10" inputmode="numeric" />
+          <button type="button" class="paste-btn" data-target="caller-id" data-type="phone" title="Paste from clipboard">📋</button>
+        </div>
+        <div class="input-hint">+1 / country code stripped automatically</div>
       </div>
-      <div class="input-hint">Only 10 digits — +1 / country code stripped automatically</div>
-    </div>
-    <div class="field zip" id="zip-field" style="display:none;">
-      <label for="zip">Zip code</label>
-      <div class="input-wrap">
-        <input type="text" id="zip" placeholder="90210" autocomplete="off" maxlength="10" inputmode="numeric" />
-        <button type="button" class="paste-btn" data-target="zip" data-type="zip" title="Paste from clipboard">📋</button>
+      <div class="field zip" id="zip-field" style="display:none;">
+        <label for="zip">Zip code</label>
+        <div class="input-wrap">
+          <input type="text" id="zip" placeholder="90210" autocomplete="off" maxlength="10" inputmode="numeric" />
+          <button type="button" class="paste-btn" data-target="zip" data-type="zip" title="Paste from clipboard">📋</button>
+        </div>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary" id="run-btn">
+    <!-- Right: run button -->
+    <button type="submit" class="btn btn-primary query-run-btn" id="run-btn">
       <span class="pulse-dot" style="display:none" id="run-dot"></span>
       Run check
     </button>
