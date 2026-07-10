@@ -24,6 +24,23 @@
   --radius: 10px;
 }
 
+/* ── Dark Theme Override ─────────────────────────────────── */
+body.dark-theme {
+  --bg: #0B0D10;
+  --panel: #14181D;
+  --panel-2: #1B2027;
+  --border: #262C34;
+  --border-soft: #1E242C;
+  --text: #E7EAEE;
+  --muted: #8A93A1;
+  --muted-2: #5B636F;
+}
+body.dark-theme {
+  background-image:
+    linear-gradient(180deg, rgba(15,128,234,0.06), transparent 320px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+}
+
 * { box-sizing: border-box; }
 
 html, body {

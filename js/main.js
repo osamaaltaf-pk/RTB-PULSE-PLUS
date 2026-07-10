@@ -94,22 +94,40 @@
       .replaceAll('{{ZIP}}',       encodeURIComponent(zip || ''));
   }
 
-  // ── Skeleton card (shown while fetching) ──────────────────
+  // ── Skeleton/Initial card ──────────────────
   function routeCardSkeleton(route) {
     const card = document.createElement('div');
-    card.className = 'result-card loading';
-    card.id = `row-${route.id}`;
-    card.innerHTML = `
-      <div class="card-header">
-        <div class="card-dot spin"></div>
-        <span class="card-label">${escapeHtml(route.name)}</span>
-        <span class="card-meta">Fetching…</span>
-      </div>
-      <div class="card-body">
-        <div class="skeleton-line" style="width:82%"></div>
-        <div class="skeleton-line" style="width:55%"></div>
-      </div>
-    `;
+    const src = config.sources.find(s => s.id === route.sourceId);
+    const isPaused = route.paused || (src && src.paused);
+
+    if (isPaused) {
+      card.className = 'result-card no-routes';
+      card.id = `row-${route.id}`;
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-dot gray"></div>
+          <span class="card-label">${escapeHtml(route.name)}</span>
+          <span class="card-meta">Paused</span>
+        </div>
+        <div class="card-body">
+          <div class="no-routes-msg">Paused by admin</div>
+        </div>
+      `;
+    } else {
+      card.className = 'result-card loading';
+      card.id = `row-${route.id}`;
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-dot spin" style="animation:none; background:var(--muted-2);"></div>
+          <span class="card-label">${escapeHtml(route.name)}</span>
+          <span class="card-meta">Ready</span>
+        </div>
+        <div class="card-body">
+          <div class="skeleton-line" style="width:82%; animation:none; background:var(--border-soft);"></div>
+          <div class="skeleton-line" style="width:55%; animation:none; background:var(--border-soft);"></div>
+        </div>
+      `;
+    }
     return card;
   }
 
@@ -335,6 +353,12 @@
     const okData = [];
 
     const jobs = config.routes.map(async route => {
+      // Check if route or source is paused
+      const src = config.sources.find(s => s.id === route.sourceId);
+      if (route.paused || (src && src.paused)) {
+        return updateRow(route, { kind: 'skipped', reason: 'Paused by admin' }, payoutVisible, rangeSize);
+      }
+
       if (route.fields.includes('caller_id') && !callerId)
         return updateRow(route, { kind: 'skipped', reason: 'Caller ID required' }, payoutVisible, rangeSize);
       if (route.fields.includes('zip') && !zip)

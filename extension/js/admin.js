@@ -135,17 +135,29 @@
       const source = sourceById(route.sourceId) || { name: route.sourceId, color: '#5B636F' };
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><span class="source-badge"><span class="source-swatch" style="background:${source.color}"></span>${escapeHtml(source.name)}</span></td>
-        <td><strong>${escapeHtml(route.name)}</strong></td>
-        <td class="url-cell">${escapeHtml(route.url)}</td>
-        <td>${route.fields.map(f => `<span class="field-tag">${f === 'caller_id' ? 'Caller ID' : 'Zip'}</span>`).join('')}</td>
+        <td style="${route.paused ? 'opacity: 0.5;' : ''}"><span class="source-badge"><span class="source-swatch" style="background:${source.color}"></span>${escapeHtml(source.name)}</span></td>
+        <td style="${route.paused ? 'opacity: 0.5; text-decoration: line-through;' : ''}"><strong>${escapeHtml(route.name)}</strong></td>
+        <td class="url-cell" style="${route.paused ? 'opacity: 0.5;' : ''}">${escapeHtml(route.url)}</td>
+        <td style="${route.paused ? 'opacity: 0.5;' : ''}">${route.fields.map(f => `<span class="field-tag">${f === 'caller_id' ? 'Caller ID' : 'Zip'}</span>`).join('')}</td>
         <td style="white-space:nowrap;">
+          <button class="btn ${route.paused ? 'btn-primary' : 'btn-ghost'} btn-sm" data-action="toggle-pause-route" data-id="${route.id}">${route.paused ? '▶️ Resume' : '⏸️ Pause'}</button>
           <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${route.id}">Edit</button>
           <button class="btn btn-danger btn-sm" data-action="delete" data-id="${route.id}">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
     }
+
+    tbody.querySelectorAll('[data-action=toggle-pause-route]').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        const route = config.routes.find(r => r.id === btn.dataset.id);
+        if (!route) return;
+        route.paused = !route.paused;
+        await saveConfig(config);
+        renderTable();
+        toast(route.paused ? `⏸️ Route "${route.name}" paused` : `▶️ Route "${route.name}" active`);
+      })
+    );
 
     tbody.querySelectorAll('[data-action=edit]').forEach(btn =>
       btn.addEventListener('click', () => openRouteModal(btn.dataset.id))
@@ -271,14 +283,27 @@
       const row = document.createElement('div');
       row.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--surface-2); border-radius:8px;';
       row.innerHTML = `
-        <span class="source-swatch" style="background:${src.color}; width:12px; height:12px; border-radius:50%; flex-shrink:0;"></span>
-        <span style="flex:1; font-weight:600; font-size:14px;">${escapeHtml(src.name)}</span>
-        <span style="font-size:12px; color:var(--muted-2); margin-right:8px;">${routeCount} route${routeCount !== 1 ? 's' : ''}</span>
+        <span class="source-swatch" style="background:${src.color}; width:12px; height:12px; border-radius:50%; flex-shrink:0; ${src.paused ? 'opacity: 0.5;' : ''}"></span>
+        <span style="flex:1; font-weight:600; font-size:14px; ${src.paused ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${escapeHtml(src.name)}</span>
+        <span style="font-size:12px; color:var(--muted-2); margin-right:8px; ${src.paused ? 'opacity: 0.5;' : ''}">${routeCount} route${routeCount !== 1 ? 's' : ''}</span>
+        <button class="btn ${src.paused ? 'btn-primary' : 'btn-ghost'} btn-sm" data-action="toggle-pause-src" data-id="${src.id}">${src.paused ? '▶️ Resume' : '⏸️ Pause'}</button>
         <button class="btn btn-ghost btn-sm" data-action="edit-src" data-id="${src.id}">Edit</button>
         <button class="btn btn-danger btn-sm" data-action="delete-src" data-id="${src.id}">Delete</button>
       `;
       list.appendChild(row);
     }
+
+    list.querySelectorAll('[data-action=toggle-pause-src]').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        const src = config.sources.find(s => s.id === btn.dataset.id);
+        if (!src) return;
+        src.paused = !src.paused;
+        await saveConfig(config);
+        renderSources();
+        renderTable();
+        toast(src.paused ? `⏸️ Source "${src.name}" paused` : `▶️ Source "${src.name}" active`);
+      })
+    );
 
     list.querySelectorAll('[data-action=edit-src]').forEach(btn =>
       btn.addEventListener('click', () => openSourceModal(btn.dataset.id))

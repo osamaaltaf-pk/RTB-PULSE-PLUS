@@ -73,6 +73,19 @@ async function loadConfig() {
     // Deep backfill and ensure keys are set
     if (data.payoutVisible === undefined) data.payoutVisible = false;
     if (data.payoutRangeSize === undefined) data.payoutRangeSize = 40;
+    
+    // Ensure all sources have paused status
+    if (data.sources) {
+      data.sources.forEach(s => {
+        if (s.paused === undefined) s.paused = false;
+      });
+    }
+    // Ensure all routes have paused status
+    if (data.routes) {
+      data.routes.forEach(r => {
+        if (r.paused === undefined) r.paused = false;
+      });
+    }
     return data;
   } catch (e) {
     console.error("Failed to load config from chrome storage:", e);
@@ -91,3 +104,42 @@ async function saveConfig(configObj) {
 function uid(prefix) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
+
+// ── Automatic Theme management ─────────────────────────────
+async function initTheme() {
+  let theme = 'light';
+  try {
+    const res = await chrome.storage.local.get(['theme']);
+    theme = res.theme || 'light';
+  } catch (e) {
+    theme = 'light';
+  }
+  
+  if (theme === 'dark') {
+    document.body.classList.add('dark-theme');
+  } else {
+    document.body.classList.remove('dark-theme');
+  }
+  
+  // Wait for DOM to wire button
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireThemeBtn);
+  } else {
+    wireThemeBtn();
+  }
+
+  function wireThemeBtn() {
+    const btn = document.getElementById('theme-toggle-btn');
+    if (!btn) return;
+    btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+    btn.addEventListener('click', async () => {
+      const isDark = document.body.classList.toggle('dark-theme');
+      const newTheme = isDark ? 'dark' : 'light';
+      btn.textContent = isDark ? '🌙' : '☀️';
+      try {
+        await chrome.storage.local.set({ theme: newTheme });
+      } catch (e) {}
+    });
+  }
+}
+initTheme();

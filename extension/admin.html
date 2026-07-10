@@ -16,7 +16,10 @@
         <h2 style="margin:0 0 2px;">Manage routes</h2>
         <div style="font-size:11px; color:var(--muted-2); letter-spacing:0.04em;">Webster Solutions LLC</div>
       </div>
-      <a href="/sidepanel/panel.html" class="btn btn-ghost" style="font-size:12px; padding:7px 13px;">← Dashboard</a>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button id="theme-toggle-btn" class="btn btn-ghost" style="padding: 6px 10px; font-size: 14px;" title="Toggle theme">☀️</button>
+        <a href="/sidepanel/panel.html" class="btn btn-ghost" style="font-size:12px; padding:7px 13px;">← Dashboard</a>
+      </div>
     </div>
     <p>Enter the admin password to add or edit buyer routes.</p>
     <form id="gate-form">
@@ -42,6 +45,7 @@
         </div>
       </div>
       <div class="top-actions">
+        <button id="theme-toggle-btn" class="btn btn-ghost" style="padding: 6px 10px; font-size: 14px;" title="Toggle theme">☀️</button>
         <a href="/sidepanel/panel.html" class="btn btn-ghost">← Board</a>
         <button class="btn btn-ghost btn-sm" id="logout-btn">Lock</button>
       </div>
