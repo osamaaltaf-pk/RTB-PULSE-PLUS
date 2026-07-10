@@ -18,6 +18,7 @@
   function unlock() {
     gate.style.display = 'none';
     adminContent.style.display = '';
+    renderSources();
     renderTable();
   }
 
@@ -202,17 +203,75 @@
     closeRouteModal();
   });
 
-  // ── Source modal ─────────────────────────────────────────
+  // ── Source CRUD ──────────────────────────────────────────
+
+  function renderSources() {
+    const list = document.getElementById('source-list');
+    list.innerHTML = '';
+    if (config.sources.length === 0) {
+      list.innerHTML = `<div style="color:var(--muted-2); font-size:13px; padding:6px 0;">No sources yet — add one above.</div>`;
+      return;
+    }
+    for (const src of config.sources) {
+      const routeCount = config.routes.filter(r => r.sourceId === src.id).length;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--surface-2); border-radius:8px;';
+      row.innerHTML = `
+        <span class="source-swatch" style="background:${src.color}; width:12px; height:12px; border-radius:50%; flex-shrink:0;"></span>
+        <span style="flex:1; font-weight:600; font-size:14px;">${escapeHtml(src.name)}</span>
+        <span style="font-size:12px; color:var(--muted-2); margin-right:8px;">${routeCount} route${routeCount !== 1 ? 's' : ''}</span>
+        <button class="btn btn-ghost btn-sm" data-action="edit-src" data-id="${src.id}">Edit</button>
+        <button class="btn btn-danger btn-sm" data-action="delete-src" data-id="${src.id}">Delete</button>
+      `;
+      list.appendChild(row);
+    }
+
+    list.querySelectorAll('[data-action=edit-src]').forEach(btn =>
+      btn.addEventListener('click', () => openSourceModal(btn.dataset.id))
+    );
+    list.querySelectorAll('[data-action=delete-src]').forEach(btn =>
+      btn.addEventListener('click', () => {
+        const src = config.sources.find(s => s.id === btn.dataset.id);
+        if (!src) return;
+        const routeCount = config.routes.filter(r => r.sourceId === src.id).length;
+        const msg = routeCount > 0
+          ? `Delete source "${src.name}"? This will also delete ${routeCount} route${routeCount > 1 ? 's' : ''} assigned to it. This can't be undone.`
+          : `Delete source "${src.name}"? This can't be undone.`;
+        if (!confirm(msg)) return;
+        config.routes = config.routes.filter(r => r.sourceId !== src.id);
+        config.sources = config.sources.filter(s => s.id !== src.id);
+        saveConfig(config);
+        renderSources();
+        renderTable();
+        toast(`Source "${src.name}" deleted`);
+      })
+    );
+  }
 
   const sourceBackdrop = document.getElementById('source-modal-backdrop');
   const sourceForm = document.getElementById('source-form');
+  const sourceModalTitle = document.getElementById('source-modal-title');
+  const sourceIdInput = document.getElementById('source-id');
 
-  document.getElementById('add-source-btn').addEventListener('click', () => {
-    document.getElementById('source-name').value = '';
-    document.getElementById('source-color').value = '#3FB8AF';
+  function openSourceModal(srcId) {
+    if (srcId) {
+      const src = config.sources.find(s => s.id === srcId);
+      if (!src) return;
+      sourceModalTitle.textContent = 'Edit source';
+      sourceIdInput.value = src.id;
+      document.getElementById('source-name').value = src.name;
+      document.getElementById('source-color').value = src.color;
+    } else {
+      sourceModalTitle.textContent = 'Add source';
+      sourceIdInput.value = '';
+      document.getElementById('source-name').value = '';
+      document.getElementById('source-color').value = '#3FB8AF';
+    }
     sourceBackdrop.classList.add('open');
     document.getElementById('source-name').focus();
-  });
+  }
+
+  document.getElementById('add-source-btn').addEventListener('click', () => openSourceModal(null));
   document.getElementById('source-cancel-btn').addEventListener('click', () => sourceBackdrop.classList.remove('open'));
   sourceBackdrop.addEventListener('click', e => { if (e.target === sourceBackdrop) sourceBackdrop.classList.remove('open'); });
 
@@ -220,14 +279,22 @@
     e.preventDefault();
     const name = document.getElementById('source-name').value.trim();
     if (!name) return;
-    config.sources.push({
-      id: uid('src'),
-      name,
-      color: document.getElementById('source-color').value
-    });
+    const color = document.getElementById('source-color').value;
+    const existingId = sourceIdInput.value;
+
+    if (existingId) {
+      // Edit existing source
+      const src = config.sources.find(s => s.id === existingId);
+      if (src) { src.name = name; src.color = color; }
+      toast(`Source "${name}" updated`);
+    } else {
+      // Add new source
+      config.sources.push({ id: uid('src'), name, color });
+      toast(`Source "${name}" added`);
+    }
     saveConfig(config);
     sourceBackdrop.classList.remove('open');
-    toast(`Source "${name}" added`);
+    renderSources();
     renderTable();
   });
 
