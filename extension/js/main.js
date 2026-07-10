@@ -346,7 +346,7 @@
     summaryBar.style.display = 'grid';
   }
 
-  // ── Run all routes in parallel using background worker batching ──────────
+  // ── Run all routes in parallel ────────────────────────────
   async function runCheck(callerId, zip) {
     config = await loadConfig();
     refreshZipVisibility();
@@ -363,58 +363,30 @@
     const t0 = Date.now();
     const okData = [];
 
-    // 1. Separate skipped vs active routes
-    const activeRoutes = [];
-    config.routes.forEach(route => {
-      if (route.fields.includes('caller_id') && !callerId) {
-        updateRow(route, { kind: 'skipped', reason: 'Caller ID required' }, payoutVisible, rangeSize);
-      } else if (route.fields.includes('zip') && !zip) {
-        updateRow(route, { kind: 'skipped', reason: 'Zip code required' }, payoutVisible, rangeSize);
-      } else {
-        activeRoutes.push(route);
+    const jobs = config.routes.map(async route => {
+      if (route.fields.includes('caller_id') && !callerId)
+        return updateRow(route, { kind: 'skipped', reason: 'Caller ID required' }, payoutVisible, rangeSize);
+      if (route.fields.includes('zip') && !zip)
+        return updateRow(route, { kind: 'skipped', reason: 'Zip code required' }, payoutVisible, rangeSize);
+
+      const targetUrl = fillTemplate(route.url, callerId, zip);
+      try {
+        const response = await chrome.runtime.sendMessage({ type: 'FETCH_DIRECT', url: targetUrl });
+        if (!response || !response.success) {
+          throw new Error(response?.error || 'Direct fetch failed');
+        }
+        const body = response.data;
+        okData.push(body);
+        return updateRow(route, { kind: 'ok', data: body }, payoutVisible, rangeSize);
+      } catch (e) {
+        return updateRow(route, {
+          kind: 'error',
+          message: e.name === 'TimeoutError' ? 'Timed out after 20s' : e.message
+        }, payoutVisible, rangeSize);
       }
     });
 
-    if (activeRoutes.length > 0) {
-      try {
-        // 2. Prepare payload for batch fetch
-        const routesPayload = activeRoutes.map(r => ({
-          id: r.id,
-          url: fillTemplate(r.url, callerId, zip)
-        }));
-
-        // 3. Send single message to background for concurrent fetching
-        const response = await chrome.runtime.sendMessage({
-          type: 'FETCH_BATCH',
-          routes: routesPayload
-        });
-
-        // 4. Update the UI for each route result
-        if (response && Array.isArray(response.results)) {
-          response.results.forEach(res => {
-            const routeObj = activeRoutes.find(r => r.id === res.id);
-            if (!routeObj) return;
-
-            if (res.success) {
-              okData.push(res.data);
-              updateRow(routeObj, { kind: 'ok', data: res.data }, payoutVisible, rangeSize);
-            } else {
-              updateRow(routeObj, { kind: 'error', message: res.error || 'Fetch failed' }, payoutVisible, rangeSize);
-            }
-          });
-        } else {
-          // If message passing completely failed
-          activeRoutes.forEach(r => {
-            updateRow(r, { kind: 'error', message: 'No response from background process' }, payoutVisible, rangeSize);
-          });
-        }
-      } catch (e) {
-        activeRoutes.forEach(r => {
-          updateRow(r, { kind: 'error', message: e.message || 'Batch fetch dispatch failed' }, payoutVisible, rangeSize);
-        });
-      }
-    }
-
+    await Promise.all(jobs);
     updateSummaryBar(okData, Date.now() - t0, payoutVisible, rangeSize);
     runBtn.disabled = false;
     runDot.style.display = 'none';
